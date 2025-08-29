@@ -1,54 +1,73 @@
-// server.js
-const WebSocket = require('ws');
+const express = require('express');
+const cors = require('cors');
+const socketIo = require('socket.io')
 
-const PORT = 3000;
-const wss = new WebSocket.Server({ port: PORT });
+const app = express();
 
-let clients = {}; // Dạng: { roomId: [client1, client2] }
+app.use(cors());
+app.get('/', (req, res) => {
+    res.send('hello, word!');
+})
 
-wss.on('connection', function connection(ws) {
-  console.log('Client connected');
+const server = app.listen(3000, () => {
+    console.log('server is running on http://localhost:3000')
+})
 
-  ws.on('message', function incoming(message) {
-    let data;
-    try {
-      data = JSON.parse(message);
-    } catch (e) {
-      console.error('Invalid JSON:', message);
-      return;
-    }
-
-    const { type, roomId, payload } = data;
-
-    switch (type) {
-      case 'join':
-        if (!clients[roomId]) clients[roomId] = [];
-        clients[roomId].push(ws);
-        console.log(`Client joined room ${roomId}`);
-        break;
-
-      case 'signal':
-        const peers = clients[roomId] || [];
-        peers.forEach(client => {
-          if (client !== ws && client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({ type: 'signal', payload }));
-          }
-        });
-        break;
-
-      default:
-        console.log('Unknown message type:', type);
-    }
-  });
-
-  ws.on('close', () => {
-    console.log('Client disconnected');
-    // Xóa client khỏi tất cả room
-    for (let room in clients) {
-      clients[room] = clients[room].filter(c => c !== ws);
-      if (clients[room].length === 0) delete clients[room];
-    }
-  });
+const io = socketIo(server, {
+    cors: {
+        origin: "http://localhost:3000",
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        allowedHeaders: "*",
+        credentials: true
+    },
 });
 
-console.log(`Signaling server running on ws://localhost:${PORT}`);
+let rooms = {};
+let socketToRoom = {};
+
+io.on("connection", socket => {
+    socket.on("join", data => {
+        // let a new user join to the room
+        const roomId = data.room
+        socket.join(roomId);
+        socketToRoom[socket.id] = roomId;
+
+        // persist the new user in the room
+        if (rooms[roomId]) {
+            rooms[roomId].push({id: socket.id, name: data.name});
+        } else {
+            rooms[roomId] = [{id: socket.id, name: data.name}];
+        }
+
+        // sends a list of joined users to a new user
+        const users = rooms[data.room].filter(user => user.id !== socket.id);
+        io.sockets.to(socket.id).emit("room_users", users);
+        console.log("[joined] room:" + data.room + " name: " + data.name);
+    });
+
+    socket.on("offer", sdp => {
+        socket.broadcast.emit("getOffer", sdp);
+        console.log("offer: " + socket.id);
+    });
+
+    socket.on("answer", sdp => {
+        socket.broadcast.emit("getAnswer", sdp);
+        console.log("answer: " + socket.id);
+    });
+
+    socket.on("candidate", candidate => {
+        socket.broadcast.emit("getCandidate", candidate);
+        console.log("candidate: " + socket.id);
+    });
+
+    socket.on("disconnect", () => {
+        const roomId = socketToRoom[socket.id];
+        let room = rooms[roomId];
+        if (room) {
+            room = room.filter(user => user.id !== socket.id);
+            rooms[roomId] = room;
+        }
+        socket.broadcast.to(room).emit("user_exit", {id: socket.id});
+        console.log(`[${socketToRoom[socket.id]}]: ${socket.id} exit`);
+    });
+});
