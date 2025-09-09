@@ -28,7 +28,7 @@ let socketToRoom = {};
 io.on("connection", socket => {
     socket.on("join", data => {
         // let a new user join to the room
-        const roomId = data.room
+        const roomId = data.roomId
         socket.join(roomId);
         socketToRoom[socket.id] = roomId;
 
@@ -70,4 +70,19 @@ io.on("connection", socket => {
         socket.broadcast.to(room).emit("user_exit", {id: socket.id});
         console.log(`[${socketToRoom[socket.id]}]: ${socket.id} exit`);
     });
+
+    console.log("Sẵn sàng kết nối!")
+
+    // // Gửi offer tới một user cụ thể
+    // socket.on("offer", ({ to, sdp }) => {
+    //     io.to(to).emit("getOffer", { from: socket.id, sdp });
+    // });
+
+    // socket.on("answer", ({ to, sdp }) => {
+    //     io.to(to).emit("getAnswer", { from: socket.id, sdp });
+    // });
+
+    // socket.on("candidate", ({ to, candidate }) => {
+    //     io.to(to).emit("getCandidate", { from: socket.id, candidate });
+    // });
 });
