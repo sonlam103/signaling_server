@@ -28,7 +28,7 @@ let rooms = [];
 let socketToRoom = [];
 
 io.on("connection", socket => {
-    console.log("socket:: " + socket);
+    console.log("socket:: " + socket.type);
     socket.on("join", data => {
         // let a new user join to the room
         const roomId = data.roomId
