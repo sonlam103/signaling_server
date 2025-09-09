@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const socketIo = require('socket.io')
 
-const port = process.env.PORT || 4000 
+const port = process.env.PORT || 3000
 
 const app = express();
 
@@ -28,6 +28,7 @@ let rooms = {};
 let socketToRoom = {};
 
 io.on("connection", socket => {
+    console.log("socket:: " + socket);
     socket.on("join", data => {
         // let a new user join to the room
         const roomId = data.roomId
