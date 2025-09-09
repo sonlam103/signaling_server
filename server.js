@@ -24,8 +24,8 @@ const io = socketIo(server, {
     },
 });
 
-let rooms = {};
-let socketToRoom = {};
+let rooms = [];
+let socketToRoom = [];
 
 io.on("connection", socket => {
     console.log("socket:: " + socket);
@@ -43,9 +43,9 @@ io.on("connection", socket => {
         }
 
         // sends a list of joined users to a new user
-        const users = rooms[data.room].filter(user => user.id !== socket.id);
+        const users = rooms[data.roomId].filter(user => user.id !== socket.id);
         io.sockets.to(socket.id).emit("room_users", users);
-        console.log("[joined] room:" + data.room + " name: " + data.name);
+        console.log("[joined] room:" + data.roomId + " name: " + data.name);
     });
 
     socket.on("offer", sdp => {
