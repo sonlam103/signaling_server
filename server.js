@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const socketIo = require('socket.io')
 
+const port = process.env.PORT || 4000 
+
 const app = express();
 
 app.use(cors());
@@ -9,13 +11,13 @@ app.get('/', (req, res) => {
     res.send('hello, word!');
 })
 
-const server = app.listen(3000, () => {
-    console.log('server is running on http://localhost:3000')
+const server = app.listen(port, () => {
+    console.log(`server is running on http://localhost:${port}`)
 })
 
 const io = socketIo(server, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: `http://localhost:${port}`,
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         allowedHeaders: "*",
         credentials: true
