@@ -31,6 +31,7 @@ let roomDemo = "roomDemo";
 io.on("connection", socket => {
     socket.on("message", data => {
         let type = data.type
+        console.log("type:: " + type);
         if (!!type) {
             switch (type) {
                 // case "signal":
