@@ -29,31 +29,31 @@ let socketToRoom = [];
 let roomDemo = "roomDemo";
 
 io.on("connection", socket => {
-    socket.on("message", data => {
-        let type = data.type
-        console.log("type:: " + type);
-        if (!!type) {
-            switch (type) {
-                // case "signal":
-                //     const user = rooms[roomDemo].filter(user => user.id === socket.id);
-                //     if (!user) {
-                //         rooms[roomDemo].push({id: socket.id, name: data.name});
-                //     }
-                //     break;
-                case "offer":
-                    socket.broadcast.emit("offer", data);
-                    break;
-                case "answer":
-                    socket.broadcast.emit("answer", data);
-                    break;
-                case "candidate":
-                    socket.broadcast.emit("candidate", data);
-                    break;
-                default:
-                    break;
-            }
-        }
-    })
+    // socket.on("message", data => {
+    //     let type = data.type
+    //     console.log("type:: " + type);
+    //     if (!!type) {
+    //         switch (type) {
+    //             // case "signal":
+    //             //     const user = rooms[roomDemo].filter(user => user.id === socket.id);
+    //             //     if (!user) {
+    //             //         rooms[roomDemo].push({id: socket.id, name: data.name});
+    //             //     }
+    //             //     break;
+    //             case "offer":
+    //                 socket.broadcast.emit("offer", data);
+    //                 break;
+    //             case "answer":
+    //                 socket.broadcast.emit("answer", data);
+    //                 break;
+    //             case "candidate":
+    //                 socket.broadcast.emit("candidate", data);
+    //                 break;
+    //             default:
+    //                 break;
+    //         }
+    //     }
+    // })
 
     // socket.on("join", data => {
     //     // let a new user join to the room
@@ -74,22 +74,22 @@ io.on("connection", socket => {
     //     console.log("[joined] room:" + data.roomId + " name: " + data.name);
     // });
 
-    // socket.on("offer", sdp => {
-    //     socket.broadcast.emit("getOffer", sdp);
-    //     console.log("offer: " + socket.id);
-    // });
+    socket.on("offer", sdp => {
+        socket.broadcast.emit("offer", sdp);
+        console.log("offer: " + socket.id);
+    });
 
-    // socket.on("answer", sdp => {
-    //     socket.broadcast.emit("getAnswer", sdp);
-    //     console.log("answer: " + socket.id);
-    // });
+    socket.on("answer", sdp => {
+        socket.broadcast.emit("answer", sdp);
+        console.log("answer: " + socket.id);
+    });
 
-    // socket.on("candidate", candidate => {
-    //     socket.broadcast.emit("getCandidate", candidate);
-    //     console.log("candidate: " + socket.id);
-    // });
+    socket.on("candidate", candidate => {
+        socket.broadcast.emit("candidate", candidate);
+        console.log("candidate: " + socket.id);
+    });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", () => { 
         const roomId = socketToRoom[socket.id];
         let room = rooms[roomId];
         if (room) {
